@@ -1,32 +1,128 @@
+# TODO
+# - SET LB domain name with KAFKA_ADVERTISED_LISTENERS
 version: '3.4'
 services:
+  # https://github.com/itsaur/zookeeper-docker-swarm
+#  zookeeper:
+#    #image: itsaur/zookeeper-replicated:3.5
+#    image: daehyung/zookeeper-ensemble-swarm:3.4.12
+#    ports:
+#      - 2181:2181
+#    environment:
+#      SERVICE_NAME: ${ZOOKEEPER_SERVICE_NAME:-zookeeper}
+#    networks:
+#      - kafka-net
+#    deploy:
+#      mode: global
+#      update_config:
+#        parallelism: 1
+#        delay: 30s
+#      placement:
+#       constraints:
+#         - node.role == manager
+#      resources:
+#        reservations:
+#          cpus: '0.2'
+#          memory: '1G' 
+#        limits:
+#          cpus: '0.3'
+#          memory: '2G' 
+#
   kafka:
-    image: wurstmeister/kafka:latest
+    image: wurstmeister/kafka:1.1.0
     ports:
-      - target: 9094
-        published: 9094
-        protocol: tcp
-        mode: host
+      - 9094:9094
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 3
       update_config:
         parallelism: 1
-        delay: 30s
+        delay: 10s
       placement:
-        constraints:
-          - node.role == manager
+        constraints: &kafka_constraints
+          - node.role == worker
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '4G'
+        limits:
+          cpus: '0.5'
+          memory: '6G'
     environment:
-      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      #HOSTNAME_COMMAND: "docker info | grep 'Node\ Address:' | cut -d':' -f 2"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper_zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094
-      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
-      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      #KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      #KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094
+      #KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
+      #KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      #KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      #KAFKA_HEAP_OPTS:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
+      - kafka
       - zookeeper
+  kafka-manager:
+    image: hlebalbau/kafka-manager:latest
+    depends_on:
+      - kafka
+    #ports:
+    #  - 9000:9000
+    environment:
+      ZK_HOSTS: "zookeeper_zookeeper:2181"
+    networks:
+      - kafka
+      - zookeeper
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.2'
+          memory: '1G'
+        limits:
+          cpus: '0.3'
+          memory: '2G'
+#   kafka-exporter:
+#    image: danielqsj/kafka-exporter:latest
+#    deploy:
+#      mode: global
+#      update_config:
+#        parallelism: 1
+#        delay: 10s
+#      placement:
+#        constraints: *kafka_constraints
+ 
+  haproxy:
+    image: million12/haproxy:1.7.5
+    depends_on:
+      - kafka
+#      - zookeeper
+      - kafka-manager
+#    links:
+#      - "zookeeper:zookeeper"
+#      - "kafka:kafka"
+#      - "kafkaManager:kafkamanager"
+    ports:
+      - "9092:9092"
+      - "1099:1099"
+      - "9000:9000"
+    configs:
+      - source: haproxy.cfg
+        target: /etc/haproxy/haproxy.cfg
+    networks:
+      - kafka
+      - zookeeper
+
+configs:
+  haproxy.cfg:
+    file: ./haproxy.cfg
 networks:
+  kafka:
   zookeeper:
     external:
       name: ${ZOOKEEPER_NETWORK_NAME:-zookeeper}
+
