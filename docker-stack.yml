@@ -2,36 +2,15 @@
 # - SET LB domain name with KAFKA_ADVERTISED_LISTENERS
 version: '3.4'
 services:
-  # https://github.com/itsaur/zookeeper-docker-swarm
-#  zookeeper:
-#    #image: itsaur/zookeeper-replicated:3.5
-#    image: daehyung/zookeeper-ensemble-swarm:3.4.12
-#    ports:
-#      - 2181:2181
-#    environment:
-#      SERVICE_NAME: ${ZOOKEEPER_SERVICE_NAME:-zookeeper}
-#    networks:
-#      - kafka-net
-#    deploy:
-#      mode: global
-#      update_config:
-#        parallelism: 1
-#        delay: 30s
-#      placement:
-#       constraints:
-#         - node.role == manager
-#      resources:
-#        reservations:
-#          cpus: '0.2'
-#          memory: '1G' 
-#        limits:
-#          cpus: '0.3'
-#          memory: '2G' 
-#
+  # https://github.com/wurstmeister/kafka-docker
   kafka:
     image: wurstmeister/kafka:1.1.0
     ports:
-      - 9094:9094
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
+      #- 9094:9094
     deploy:
       mode: replicated
       replicas: 3
@@ -41,38 +20,39 @@ services:
       placement:
         constraints: &kafka_constraints
           - node.role == worker
+          - node.labels.is_virtual == true
       resources:
         reservations:
           cpus: '0.3'
-          memory: '4G'
+          memory: '2G'
         limits:
           cpus: '0.5'
-          memory: '6G'
+          memory: '3G'
     environment:
       #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
-      #HOSTNAME_COMMAND: "docker info | grep 'Node\ Address:' | cut -d':' -f 2"
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper_zookeeper:2181
-      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      #KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094
-      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
-      #KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094
-      #KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
-      #KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      #KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
-      #KAFKA_HEAP_OPTS:
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099 -Dcom.sun.management.jmxremote"
+      JMX_PORT: 1099
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    configs:
+      - source: start-kafka.sh
+        target: /usr/bin/start-kafka.sh
+        mode: 0755
     networks:
       - kafka
       - zookeeper
   kafka-manager:
-    image: hlebalbau/kafka-manager:latest
+    image: sheepkiller/kafka-manager:latest
     depends_on:
       - kafka
-    #ports:
-    #  - 9000:9000
     environment:
       ZK_HOSTS: "zookeeper_zookeeper:2181"
     networks:
@@ -120,6 +100,10 @@ services:
 configs:
   haproxy.cfg:
     file: ./haproxy.cfg
+  # Backport version - fixes JMX env. substitution problem
+  start-kafka.sh:
+    file: ./start-kafka.sh
+ 
 networks:
   kafka:
   zookeeper:
