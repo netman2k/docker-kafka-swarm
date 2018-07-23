@@ -1,0 +1,220 @@
+# TODO
+# - SET LB domain name with KAFKA_ADVERTISED_LISTENERS
+version: '3.4'
+services:
+  # https://github.com/wurstmeister/kafka-docker
+  # https://medium.com/@NegiPrateek/wtf-setting-up-kafka-cluster-using-docker-stack-5efc68841c23
+  kafka1:
+    image: wurstmeister/kafka:2.11-1.0.1
+#    extra_hosts: &extra_hosts
+#      - "logmon-dok901:10.161.64.68"
+#      - "logmon-dok902:10.161.64.173"
+#      - "logmon-dok903:10.161.64.174"
+#      - "logmon-dok904:10.161.64.175"
+#      - "logmon-dok905:10.161.64.176"
+#      - "logmon-dok906:10.161.64.233"
+#      - "logmon-dok907:10.161.64.238"
+#      - "logmon-dok908:10.161.64.239"
+    environment:
+      # Get container host's hostname
+      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # Get container host's IP
+      #HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://0.0.0.0:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      JMX_PORT: 1099
+    ports:
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
+    deploy:
+      mode: global
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        constraints: &kafka_constraints
+          - node.labels.kafka==1
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '3G'
+        limits:
+          cpus: '0.5'
+          memory: '4G'
+      labels:
+        com.df.notify: "true"
+        com.df.reqMode: "tcp"
+        com.df.port: 9094
+        com.df.srcPort: 9094
+        com.df.reqMode: "tcp"
+        com.df.serviceDomain: "kafka1.toastmaker.net"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-1-logs:/tmp/kafka-logs
+    networks:
+      - kafka
+      - zookeeper
+      - proxy
+  kafka2:
+    image: wurstmeister/kafka:2.11-1.0.1
+#    extra_hosts: *extra_hosts
+    environment:
+      # Get container host's hostname
+      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # Get container host's IP
+      #HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_BROKER_ID: 2
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://0.0.0.0:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      JMX_PORT: 1099
+    ports:
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
+    deploy:
+      mode: global
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        constraints:
+          - node.labels.kafka==2
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '3G'
+        limits:
+          cpus: '0.5'
+          memory: '4G'
+      labels:
+        com.df.notify: "true"
+        com.df.reqMode: "tcp"
+        com.df.port: 9094
+        com.df.srcPort: 9094
+        com.df.reqMode: "tcp"
+        com.df.serviceDomain: "kafka2.toastmaker.net"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-2-logs:/tmp/kafka-logs
+    networks:
+      - kafka
+      - zookeeper
+      - proxy
+  kafka3:
+    image: wurstmeister/kafka:2.11-1.0.1
+#    extra_hosts: *extra_hosts
+    environment:
+      # Get container host's hostname
+      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # Get container host's IP
+      #HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_BROKER_ID: 3
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://0.0.0.0:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      JMX_PORT: 1099
+    ports:
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
+    deploy:
+      mode: global
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        constraints:
+          - node.labels.kafka==3
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '3G'
+        limits:
+          cpus: '0.5'
+          memory: '4G'
+      labels:
+        com.df.notify: "true"
+        com.df.reqMode: "tcp"
+        com.df.port: 9094
+        com.df.srcPort: 9094
+        com.df.reqMode: "tcp"
+        com.df.serviceDomain: "kafka3.toastmaker.net"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-3-logs:/tmp/kafka-logs
+    networks:
+      - kafka
+      - zookeeper
+      - proxy
+  kafka-manager:
+    image: sheepkiller/kafka-manager:latest
+    environment:
+      ZK_HOSTS: "zookeeper:2181"
+      KM_ARGS: -Djava.net.preferIPv4Stack=true
+    networks:
+      - kafka
+      - zookeeper
+      - proxy
+    deploy:
+      labels:
+        com.df.notify: "true"
+        com.df.servicePath: "/"
+        com.df.port: 9000
+        com.df.serviceDomain: "kafka-manager.toastmaker.net"
+      resources:
+        reservations:
+          cpus: '0.2'
+          memory: '1G'
+        limits:
+          cpus: '0.3'
+          memory: '2G'
+#   kafka-exporter:
+#    image: danielqsj/kafka-exporter:latest
+#    deploy:
+#      mode: global
+#      update_config:
+#        parallelism: 1
+#        delay: 10s
+#      placement:
+#        constraints:
+#          - node.labels.kafka
+#    networks:
+#      - kafka
+ 
+configs:
+  # Backport version - fixes JMX env. substitution problem
+  start-kafka.sh:
+    file: ./start-kafka.sh
+ 
+volumes:
+  kafka-1-logs:
+  kafka-2-logs:
+  kafka-3-logs:
+  
+networks:
+  kafka:
+  zookeeper:
+    external:
+      name: ${ZOOKEEPER_NETWORK_NAME:-zookeeper}
+  proxy:
+    external:
+      name: ${PROXY_NETWORK_NAME:-proxy}
