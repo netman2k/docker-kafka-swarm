@@ -155,18 +155,19 @@ services:
         limits:
           cpus: '0.3'
           memory: '2G'
-#   kafka-exporter:
-#    image: danielqsj/kafka-exporter:latest
-#    deploy:
-#      mode: global
-#      update_config:
-#        parallelism: 1
-#        delay: 10s
-#      placement:
-#        constraints:
-#          - node.labels.kafka
-#    networks:
-#      - kafka
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    deploy:
+      mode: global
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        constraints:
+          - node.labels.application==kafka
+    networks:
+      - kafka
 
 volumes:
   kafka-1-logs:
