@@ -1,0 +1,150 @@
+# TODO
+# - SET LB domain name with KAFKA_ADVERTISED_LISTENERS
+version: '3.4'
+services:
+  # https://github.com/wurstmeister/kafka-docker
+  # https://medium.com/@NegiPrateek/wtf-setting-up-kafka-cluster-using-docker-stack-5efc68841c23
+  kafka01:
+    image: wurstmeister/kafka:2.11-1.0.1
+    environment:
+      # Get container host's hostname
+      #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # Get container host's IP
+      #HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      #KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://kafka1.toastmaker.net:9094"
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://0.0.0.0:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      JMX_PORT: 1099
+    ports:
+      - 9094:9094
+    deploy:
+      #mode: global
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        constraints:
+          - node.labels.kafka==1
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '3G'
+        limits:
+          cpus: '0.5'
+          memory: '4G'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-logs:/tmp/kafka-logs
+    networks:
+      - backend
+  kafka02:
+    image: wurstmeister/kafka:2.11-1.0.1
+    environment:
+      # Get container host's hostname
+      #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # Get container host's IP
+      #HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+      KAFKA_BROKER_ID: 2
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      #KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://kafka2.toastmaker.net:9095"
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://0.0.0.0:9095
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      JMX_PORT: 1099
+    ports:
+      - 9095:9095
+    deploy:
+      #mode: global
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        constraints:
+          - node.labels.kafka==2
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '3G'
+        limits:
+          cpus: '0.5'
+          memory: '4G'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-logs:/tmp/kafka-logs
+    networks:
+      - backend
+  kafka03:
+    image: wurstmeister/kafka:2.11-1.0.1
+    environment:
+      # Get container host's hostname
+      #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # Get container host's IP
+      #HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+      KAFKA_BROKER_ID: 3
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      #KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://kafka3.toastmaker.net:9096"
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://0.0.0.0:9096
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      JMX_PORT: 1099
+    ports:
+       - 9096:9096
+    deploy:
+      #mode: global
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        constraints:
+          - node.labels.kafka==3
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '3G'
+        limits:
+          cpus: '0.5'
+          memory: '4G'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-logs:/tmp/kafka-logs
+    networks:
+      - backend
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    command: --kafka.server=kafka01:9092 --kafka.server=kafka02:9092 --kafka.server=kafka03:9092
+    ports:
+     - 9308:9308
+    deploy:
+      mode: replicated
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M      
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+      endpoint_mode: vip
+    networks:
+      - backend
+
+volumes:
+  kafka-logs:
+  
+networks:
+  backend:
+    external:
+      name: ${NETWORK_BACKEND:-kafka}
