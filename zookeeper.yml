@@ -19,20 +19,20 @@ services:
     networks:
       - backend
 
-  exp1:
-    image: dabealu/zookeeper-exporter
-    ports:
-      - 8081:8080
-    command: --zk-host=zoo1
-    deploy:
-      placement:
-        constraints:
-          - node.labels.kafka==1
-          #- node.Hostname==infa-swarm-t1001
-    depends_on:
-      - zoo1
-    networks:
-      - backend
+#  exp1:
+#    image: dabealu/zookeeper-exporter
+#    ports:
+#      - 8081:8080
+#    command: --zk-host=zoo1
+#    deploy:
+#      placement:
+#        constraints:
+#          - node.labels.kafka==1
+#          #- node.Hostname==infa-swarm-t1001
+#    depends_on:
+#      - zoo1
+#    networks:
+#      - backend
 
   # second
   zoo2:
@@ -51,20 +51,20 @@ services:
     networks:
       - backend
 
-  exp2:
-    image: dabealu/zookeeper-exporter
-    ports:
-      - 8082:8080
-    command: --zk-host=zoo2
-    deploy:
-      placement:
-        constraints:
-          - node.labels.kafka==2
-          #- node.Hostname==infa-swarm-t1901
-    depends_on:
-      - zoo2
-    networks:
-      - backend
+#  exp2:
+#    image: dabealu/zookeeper-exporter
+#    ports:
+#      - 8082:8080
+#    command: --zk-host=zoo2
+#    deploy:
+#      placement:
+#        constraints:
+#          - node.labels.kafka==2
+#          #- node.Hostname==infa-swarm-t1901
+#    depends_on:
+#      - zoo2
+#    networks:
+#      - backend
 
   # third
   zoo3:
@@ -83,25 +83,25 @@ services:
     networks:
       - backend
 
-  exp3:
-    image: dabealu/zookeeper-exporter
-    ports:
-      - 8083:8080
-    command: --zk-host=zoo3
-    deploy:
-      placement:
-        constraints:
-          - node.labels.kafka==3
-          #- node.Hostname==infa-swarm-wa901
-    depends_on:
-      - zoo3
-    networks:
-      - backend
+#  exp3:
+#    image: dabealu/zookeeper-exporter
+#    ports:
+#      - 8083:8080
+#    command: --zk-host=zoo3
+#    deploy:
+#      placement:
+#        constraints:
+#          - node.labels.kafka==3
+#          #- node.Hostname==infa-swarm-wa901
+#    depends_on:
+#      - zoo3
+#    networks:
+#      - backend
 
   exp123:
     image: dabealu/zookeeper-exporter
     ports:
-      - 8084:8080
+      - 9141:8080
     command: --zk-list="zoo1:2181,zoo2:2181,zoo3:2181"
     deploy:
       placement:
