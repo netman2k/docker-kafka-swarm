@@ -122,11 +122,11 @@ services:
     networks:
       - backend
   kafka-exporter:
-    image: danielqsj/kafka-exporter:latest
-    command: --kafka.server=kafka01:9092 --kafka.server=kafka02:9092 --kafka.server=kafka03:9092
+    image: danielqsj/kafka-exporter:v1.2.0
+    command: --kafka.server=tasks.kafka01:9092 --kafka.server=tasks.kafka02:9092 --kafka.server=tasks.kafka03:9092
     ports:
      # Following the scheme, https://github.com/prometheus/prometheus/wiki/Default-port-allocations
-     - 9185:9308
+     - 9308:9308
     deploy:
       mode: replicated
       resources:
