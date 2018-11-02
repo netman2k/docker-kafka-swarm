@@ -20,6 +20,7 @@ services:
       #KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
       KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
       JMX_PORT: 1099
     #ports:
     #  - 9094:9094
@@ -41,6 +42,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - kafka-logs:/tmp/kafka-logs
+      - kafka:/kafka
     networks:
       - backend
   kafka02:
@@ -59,6 +61,7 @@ services:
       #KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
       KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
       JMX_PORT: 1099
     #ports:
     #  - 9095:9095
@@ -80,6 +83,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - kafka-logs:/tmp/kafka-logs
+      - kafka:/kafka
     networks:
       - backend
   kafka03:
@@ -98,6 +102,7 @@ services:
       #KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
       KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
       JMX_PORT: 1099
     #ports:
     #   - 9096:9096
@@ -119,6 +124,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - kafka-logs:/tmp/kafka-logs
+      - kafka:/kafka
     networks:
       - backend
   kafka-exporter:
@@ -144,6 +150,7 @@ services:
 
 volumes:
   kafka-logs:
+  kafka:
   
 networks:
   backend:
