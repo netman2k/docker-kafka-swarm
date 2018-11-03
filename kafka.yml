@@ -5,7 +5,7 @@ services:
   # https://github.com/wurstmeister/kafka-docker
   # https://medium.com/@NegiPrateek/wtf-setting-up-kafka-cluster-using-docker-stack-5efc68841c23
   kafka01:
-    image: wurstmeister/kafka:2.11-1.0.1
+    image: wurstmeister/kafka:2.11-1.1.1
     environment:
       # Get container host's hostname
       #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
@@ -41,12 +41,13 @@ services:
           memory: '4G'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - kafka-logs:/tmp/kafka-logs
-      - kafka:/kafka
+      - kafka-logs01:/tmp/kafka-logs
+      - kafka01:/kafka
     networks:
-      - backend
+      - zookeeper
+      - kafka
   kafka02:
-    image: wurstmeister/kafka:2.11-1.0.1
+    image: wurstmeister/kafka:2.11-1.1.1
     environment:
       # Get container host's hostname
       #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
@@ -82,12 +83,13 @@ services:
           memory: '4G'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - kafka-logs:/tmp/kafka-logs
-      - kafka:/kafka
+      - kafka-logs02:/tmp/kafka-logs
+      - kafka02:/kafka
     networks:
-      - backend
+      - zookeeper
+      - kafka
   kafka03:
-    image: wurstmeister/kafka:2.11-1.0.1
+    image: wurstmeister/kafka:2.11-1.1.1
     environment:
       # Get container host's hostname
       #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
@@ -123,10 +125,11 @@ services:
           memory: '4G'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - kafka-logs:/tmp/kafka-logs
-      - kafka:/kafka
+      - kafka-logs03:/tmp/kafka-logs
+      - kafka03:/kafka
     networks:
-      - backend
+      - zookeeper
+      - kafka
   kafka-exporter:
     image: danielqsj/kafka-exporter:v1.2.0
     command: --kafka.server=tasks.kafka01:9092 --kafka.server=tasks.kafka02:9092 --kafka.server=tasks.kafka03:9092
@@ -146,13 +149,34 @@ services:
           - node.role == worker
       endpoint_mode: vip
     networks:
-      - backend
+      - zookeeper
+      - kafka
+
+  kafka-manager:
+    image: sheepkiller/kafka-manager
+    environment:
+      ZK_HOSTS: "zoo1:2181,zoo2:2181,zoo3:2181"
+      APPLICATION_SECRET: "@dminP@ssw0rd"
+    ports:
+     # Following the scheme, https://github.com/prometheus/prometheus/wiki/Default-port-allocations
+     - 9001:9000
+    networks:
+      - zookeeper
+      - kafka
+
 
 volumes:
-  kafka-logs:
-  kafka:
+  kafka-logs01:
+  kafka-logs02:
+  kafka-logs03:
+  kafka01:
+  kafka02:
+  kafka03:
   
 networks:
-  backend:
+  kafka:
     external:
-      name: ${NETWORK_BACKEND:-kafka}
+      name: ${NETWORK_KAFKA:-kafka}
+  zookeeper:
+    external:
+      name: ${NETWORK_ZOOKEEPER:-zookeeper}

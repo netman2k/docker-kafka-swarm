@@ -11,13 +11,14 @@ services:
     environment:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+      - zoo1:/data
     deploy:
       placement:
         constraints:
           - node.labels.kafka==1
-          #- node.Hostname==infa-swarm-t1001
     networks:
-      - backend
+      - zookeeper
 
 #  exp1:
 #    image: dabealu/zookeeper-exporter
@@ -28,11 +29,10 @@ services:
 #      placement:
 #        constraints:
 #          - node.labels.kafka==1
-#          #- node.Hostname==infa-swarm-t1001
 #    depends_on:
 #      - zoo1
 #    networks:
-#      - backend
+#      - zookeeper
 
   # second
   zoo2:
@@ -43,13 +43,14 @@ services:
     environment:
       ZOO_MY_ID: 2
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zoo3:2888:3888
+    volumes:
+      - zoo2:/data
     deploy:
       placement:
         constraints:
           - node.labels.kafka==2
-          #- node.Hostname==infa-swarm-t1901
     networks:
-      - backend
+      - zookeeper
 
 #  exp2:
 #    image: dabealu/zookeeper-exporter
@@ -64,7 +65,7 @@ services:
 #    depends_on:
 #      - zoo2
 #    networks:
-#      - backend
+#      - zookeeper
 
   # third
   zoo3:
@@ -75,13 +76,14 @@ services:
     environment:
       ZOO_MY_ID: 3
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888
+    volumes:
+      - zoo3:/data
     deploy:
       placement:
         constraints:
           - node.labels.kafka==3
-          #- node.Hostname==infa-swarm-wa901
     networks:
-      - backend
+      - zookeeper
 
 #  exp3:
 #    image: dabealu/zookeeper-exporter
@@ -96,7 +98,7 @@ services:
 #    depends_on:
 #      - zoo3
 #    networks:
-#      - backend
+#      - zookeeper
 
   exp123:
     image: dabealu/zookeeper-exporter
@@ -108,10 +110,18 @@ services:
         constraints:
           - node.role == manager
     networks:
-      - backend
+      - zookeeper
+      - monitor
 
+volumes:
+  zoo1:
+  zoo2:
+  zoo3:
 networks:
-  backend:
+  zookeeper:
     external:
-      name: ${NETWORK_BACKEND:-kafka}
+      name: ${NETWORK_ZOOKEEPER:-zookeeper}
+  monitor:
+    external:
+      name: ${NETWORK_MONITOR:-monitoring}
 
