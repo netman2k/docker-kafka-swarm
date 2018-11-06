@@ -20,7 +20,6 @@ docker network create -d overlay --attachable kafka
 export NETWORK_BACKEND=kafka
 ```
 
-```
 ## Apache Zookeeper ensemble 실행
 다음 커맨드는 Zookeeper ensemble 구성을 위한 3개의 Zookeeper, 그리고 zookeeper-exporter를 구동시킨다.
 
