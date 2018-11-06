@@ -18,8 +18,7 @@ Kafka 컨테이너를 실행할 호스트가 사라지게된다.
 replicas: 1 설정에의해 해당 레이블이 있는 다른 호스트에 자동으로 컨테이너를 띄울 수 있게 된다.
 
 따라서 동일 순간 한대의 장애가 있을 경우를 대비할 수 있게 된다.
-```
-[root@infa-swarm-wa901 docker-kafka-swarm]# docker node update infa-swarm-t1903 --label-add kafka=1
+
 ```
 docker node update infa-swarm-t1901 --label-add kafka=1
 docker node update infa-swarm-t1902 --label-add kafka=2
