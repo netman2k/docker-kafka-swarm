@@ -44,8 +44,8 @@ services:
       - kafka-logs01:/tmp/kafka-logs
       - kafka01:/kafka
     networks:
-      - zookeeper
-      - kafka
+      - backend
+
   kafka02:
     image: wurstmeister/kafka:2.11-1.1.1
     environment:
@@ -86,8 +86,8 @@ services:
       - kafka-logs02:/tmp/kafka-logs
       - kafka02:/kafka
     networks:
-      - zookeeper
-      - kafka
+      - backend
+
   kafka03:
     image: wurstmeister/kafka:2.11-1.1.1
     environment:
@@ -128,8 +128,8 @@ services:
       - kafka-logs03:/tmp/kafka-logs
       - kafka03:/kafka
     networks:
-      - zookeeper
-      - kafka
+      - backend
+
   kafka-exporter:
     image: danielqsj/kafka-exporter:v1.2.0
     command: --kafka.server=tasks.kafka01:9092 --kafka.server=tasks.kafka02:9092 --kafka.server=tasks.kafka03:9092
@@ -149,8 +149,7 @@ services:
           - node.role == worker
       endpoint_mode: vip
     networks:
-      - zookeeper
-      - kafka
+      - backend
 
   kafka-manager:
     image: sheepkiller/kafka-manager
@@ -161,8 +160,7 @@ services:
      # Following the scheme, https://github.com/prometheus/prometheus/wiki/Default-port-allocations
      - 9001:9000
     networks:
-      - zookeeper
-      - kafka
+      - backend
 
 
 volumes:
@@ -174,9 +172,6 @@ volumes:
   kafka03:
   
 networks:
-  kafka:
+  backend:
     external:
-      name: ${NETWORK_KAFKA:-kafka}
-  zookeeper:
-    external:
-      name: ${NETWORK_ZOOKEEPER:-zookeeper}
+      name: ${NETWORK_BACKEND:-kafka}

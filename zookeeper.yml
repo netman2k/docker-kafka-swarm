@@ -18,7 +18,7 @@ services:
         constraints:
           - node.labels.kafka==1
     networks:
-      - zookeeper
+      - backend
 
 #  exp1:
 #    image: dabealu/zookeeper-exporter
@@ -50,7 +50,7 @@ services:
         constraints:
           - node.labels.kafka==2
     networks:
-      - zookeeper
+      - backend
 
 #  exp2:
 #    image: dabealu/zookeeper-exporter
@@ -83,7 +83,7 @@ services:
         constraints:
           - node.labels.kafka==3
     networks:
-      - zookeeper
+      - backend
 
 #  exp3:
 #    image: dabealu/zookeeper-exporter
@@ -110,7 +110,7 @@ services:
         constraints:
           - node.role == manager
     networks:
-      - zookeeper
+      - backend
       - monitor
 
 volumes:
@@ -118,9 +118,9 @@ volumes:
   zoo2:
   zoo3:
 networks:
-  zookeeper:
+  backend:
     external:
-      name: ${NETWORK_ZOOKEEPER:-zookeeper}
+      name: ${NETWORK_BACKEND:-kafka}
   monitor:
     external:
       name: ${NETWORK_MONITOR:-monitoring}
