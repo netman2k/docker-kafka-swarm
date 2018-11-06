@@ -25,7 +25,9 @@ services:
     #ports:
     #  - 9094:9094
     deploy:
-      #mode: global
+      mode: replicated
+      # Do not change this
+      replicas: 1
       update_config:
         parallelism: 1
         delay: 10s
@@ -67,7 +69,9 @@ services:
     #ports:
     #  - 9095:9095
     deploy:
-      #mode: global
+      mode: replicated
+      # Do not change this
+      replicas: 1
       update_config:
         parallelism: 1
         delay: 10s
@@ -109,7 +113,9 @@ services:
     #ports:
     #   - 9096:9096
     deploy:
-      #mode: global
+      mode: replicated
+      # Do not change this
+      replicas: 1
       update_config:
         parallelism: 1
         delay: 10s
