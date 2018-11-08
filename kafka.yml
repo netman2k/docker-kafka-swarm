@@ -156,6 +156,7 @@ services:
       endpoint_mode: vip
     networks:
       - backend
+      - monitor
 
   kafka-manager:
     image: sheepkiller/kafka-manager
@@ -181,3 +182,6 @@ networks:
   backend:
     external:
       name: ${NETWORK_BACKEND:-kafka}
+  monitor:
+    external:
+      name: ${NETWORK_MONITOR:-monitoring}
